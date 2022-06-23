@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  database:
+    image: mariadb
+    container_name: database
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: 123
+      MARIADB_DATABASE: lara-vue-db
+    ports:
+      - '5000:3306'
+    volumes:
+      - ./mariadb-data:/var/lib/mariadb/data
+      
+  php-apache:
+    container_name: php-apache
+    image: php:8.1-apache
+    build:
+      context: ./php
+    ports:
+        - '8899:80'
+    volumes:
+      - ./src:/var/www/lara-vue
+      - ./apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    depends_on:
+      - database
+      
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8888:80
+    environment:
+      - PMA_ARBITRARY=1
+    depends_on:
+      - database
+      - php-apache
